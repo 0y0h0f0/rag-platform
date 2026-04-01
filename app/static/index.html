@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Distributed RAG Retrieval Platform</title>
+    <style>
+      :root {
+        --bg: #f3efe6;
+        --panel: rgba(255, 251, 245, 0.84);
+        --ink: #1a1b1f;
+        --muted: #5f5a52;
+        --accent: #0f766e;
+        --accent-soft: #d7f5ee;
+        --border: rgba(26, 27, 31, 0.12);
+        --shadow: 0 20px 60px rgba(28, 30, 35, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(15, 118, 110, 0.16), transparent 32%),
+          radial-gradient(circle at bottom right, rgba(196, 86, 40, 0.14), transparent 28%),
+          linear-gradient(180deg, #f7f2e9 0%, var(--bg) 100%);
+      }
+
+      .page {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 40px 20px 64px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 24px;
+        align-items: end;
+        margin-bottom: 28px;
+      }
+
+      .title {
+        font-size: clamp(40px, 6vw, 72px);
+        line-height: 0.94;
+        letter-spacing: -0.05em;
+        margin: 0;
+        max-width: 8ch;
+      }
+
+      .subtitle {
+        font-size: 17px;
+        line-height: 1.7;
+        color: var(--muted);
+        max-width: 54ch;
+        margin-top: 18px;
+      }
+
+      .hero-card,
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+      }
+
+      .hero-card {
+        padding: 22px;
+      }
+
+      .badge {
+        display: inline-flex;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .stat {
+        padding: 14px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.56);
+      }
+
+      .stat strong {
+        display: block;
+        font-size: 22px;
+        margin-bottom: 4px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 0.95fr 1.05fr;
+        gap: 24px;
+      }
+
+      .panel {
+        padding: 24px;
+      }
+
+      .panel h2 {
+        margin-top: 0;
+        margin-bottom: 8px;
+        font-size: 22px;
+      }
+
+      .panel p {
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .field,
+      .actions {
+        margin-top: 14px;
+      }
+
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      input,
+      select,
+      textarea,
+      button {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        font: inherit;
+      }
+
+      input,
+      select,
+      textarea {
+        padding: 13px 14px;
+        background: rgba(255, 255, 255, 0.92);
+      }
+
+      textarea {
+        min-height: 128px;
+        resize: vertical;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      button {
+        padding: 14px 16px;
+        font-weight: 700;
+        cursor: pointer;
+        background: var(--ink);
+        color: white;
+      }
+
+      button.secondary {
+        background: white;
+        color: var(--ink);
+      }
+
+      .result {
+        margin-top: 16px;
+        padding: 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.75);
+        min-height: 160px;
+        white-space: pre-wrap;
+        line-height: 1.6;
+      }
+
+      .doc-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .doc-item {
+        padding: 14px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(26, 27, 31, 0.08);
+      }
+
+      .doc-meta {
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 6px;
+      }
+
+      @media (max-width: 900px) {
+        .hero,
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .actions,
+        .stats {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <section class="hero">
+        <div>
+          <span class="badge">Version 3 Demo UI</span>
+          <h1 class="title">Distributed RAG Retrieval Platform</h1>
+          <p class="subtitle">
+            A lightweight frontend for demonstrating document upload, retrieval, knowledge-base filtering,
+            and grounded answer generation in your internship project.
+          </p>
+        </div>
+        <div class="hero-card">
+          <div class="stats">
+            <div class="stat"><strong>FastAPI</strong><span>online APIs</span></div>
+            <div class="stat"><strong>LanceDB</strong><span>vector retrieval</span></div>
+            <div class="stat"><strong>Celery</strong><span>async indexing</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="panel">
+          <h2>Upload Document</h2>
+          <p>Upload a file into a named knowledge base. In eager mode the indexing task finishes inline.</p>
+          <div class="field">
+            <label for="knowledgeBase">Knowledge Base</label>
+            <input id="knowledgeBase" value="default" />
+          </div>
+          <div class="field">
+            <label for="fileInput">Document</label>
+            <input id="fileInput" type="file" />
+          </div>
+          <div class="actions">
+            <button id="uploadButton">Upload</button>
+            <button class="secondary" id="refreshDocsButton">Refresh Documents</button>
+          </div>
+          <div class="result" id="uploadResult">Waiting for upload.</div>
+
+          <h2 style="margin-top: 28px">System Summary</h2>
+          <div class="summary-grid" id="summaryGrid"></div>
+
+          <h2 style="margin-top: 28px">Indexed Documents</h2>
+          <div class="doc-list" id="documentList"></div>
+        </div>
+
+        <div class="panel">
+          <h2>Search And Chat</h2>
+          <p>Switch between vector and hybrid retrieval to show why lexical fusion helps code and technical corpora.</p>
+          <div class="field">
+            <label for="queryInput">Query</label>
+            <textarea id="queryInput">How does the asynchronous ingestion pipeline improve throughput?</textarea>
+          </div>
+          <div class="field">
+            <label for="searchMode">Search Mode</label>
+            <select id="searchMode">
+              <option value="vector">vector</option>
+              <option value="lexical">lexical</option>
+              <option value="hybrid">hybrid</option>
+            </select>
+          </div>
+          <div class="actions">
+            <button id="searchButton">Run Search</button>
+            <button class="secondary" id="chatButton">Run Chat</button>
+          </div>
+          <div class="result" id="queryResult">Waiting for query.</div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const uploadResult = document.getElementById("uploadResult");
+      const queryResult = document.getElementById("queryResult");
+      const documentList = document.getElementById("documentList");
+      const summaryGrid = document.getElementById("summaryGrid");
+
+      async function refreshSummary() {
+        const response = await fetch("/api/v1/documents/dashboard/summary");
+        const summary = await response.json();
+        summaryGrid.innerHTML = "";
+        Object.entries(summary).forEach(([key, value]) => {
+          const item = document.createElement("div");
+          item.className = "stat";
+          item.innerHTML = `<strong>${value}</strong><span>${key}</span>`;
+          summaryGrid.appendChild(item);
+        });
+      }
+
+      async function refreshDocuments() {
+        const response = await fetch("/api/v1/documents");
+        const docs = await response.json();
+        documentList.innerHTML = "";
+        docs.forEach((doc) => {
+          const item = document.createElement("div");
+          item.className = "doc-item";
+          item.innerHTML = `
+            <strong>${doc.filename}</strong>
+            <div class="doc-meta">knowledge_base=${doc.knowledge_base} | status=${doc.status} | size=${doc.file_size} bytes</div>
+          `;
+          documentList.appendChild(item);
+        });
+      }
+
+      async function uploadDocument() {
+        const fileInput = document.getElementById("fileInput");
+        const kb = document.getElementById("knowledgeBase").value || "default";
+        if (!fileInput.files.length) {
+          uploadResult.textContent = "Please choose a file first.";
+          return;
+        }
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+        formData.append("knowledge_base", kb);
+
+        uploadResult.textContent = "Uploading and scheduling indexing...";
+        const response = await fetch("/api/v1/documents/upload", { method: "POST", body: formData });
+        const data = await response.json();
+        uploadResult.textContent = JSON.stringify(data, null, 2);
+        refreshDocuments();
+        refreshSummary();
+      }
+
+      async function runQuery(kind) {
+        const payload = {
+          query: document.getElementById("queryInput").value,
+          top_k: 5,
+          knowledge_base: document.getElementById("knowledgeBase").value || "default",
+          use_rerank: true,
+          search_mode: document.getElementById("searchMode").value,
+        };
+        queryResult.textContent = `Running ${kind}...`;
+        const response = await fetch(`/api/v1/${kind}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        queryResult.textContent = JSON.stringify(data, null, 2);
+      }
+
+      document.getElementById("uploadButton").addEventListener("click", uploadDocument);
+      document.getElementById("refreshDocsButton").addEventListener("click", refreshDocuments);
+      document.getElementById("searchButton").addEventListener("click", () => runQuery("search"));
+      document.getElementById("chatButton").addEventListener("click", () => runQuery("chat"));
+
+      refreshDocuments();
+      refreshSummary();
+    </script>
+  </body>
+</html>
