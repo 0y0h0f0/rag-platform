@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: rag-platform
+  labels:
+    app: api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: rag-platform:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: rag-platform-config
+            - secretRef:
+                name: rag-platform-secret
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8000
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          volumeMounts:
+            - name: lancedb-data
+              mountPath: /data
+      volumes:
+        - name: lancedb-data
+          persistentVolumeClaim:
+            claimName: lancedb-pvc

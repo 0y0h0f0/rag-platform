@@ -34,3 +34,14 @@ tmp/
 .DS_Store
 .idea/
 .vscode/
+
+# Local startup scripts (contain credentials)
+start
+start.sh
+
+# Personal notes
+study.md
+ms.md
+
+# Claude Code
+.claude/

@@ -27,6 +27,37 @@ class Settings(BaseSettings):
     search_mode_default: str = "vector"
     search_cache_ttl_seconds: int = 300
 
+    # --- LLM (OpenAI-compatible API) ---
+    llm_provider: str = "deepseek"  # ollama | api | deepseek | ab_test
+    llm_api_key: str = ""
+    llm_base_url: str = "https://api.deepseek.com"
+    llm_model: str = "deepseek-chat"
+    llm_temperature: float = 0.2
+    llm_max_tokens: int = 512
+    llm_timeout_seconds: float = 30.0
+
+    # --- Ollama ---
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_llm_model: str = "qwen2.5:7b-instruct-q4_K_M"
+    ollama_embed_model: str = "nomic-embed-text"
+
+    # --- Provider selection ---
+    embedding_provider: str = "legacy"  # ollama | legacy (sentence_transformers / local)
+
+    # --- A/B testing ---
+    ab_model_a: str = "qwen2.5:7b"
+    ab_model_b: str = "qwen2.5:3b"
+    ab_traffic_split: float = 0.8
+
+    # --- Rate limiting ---
+    rate_limit_requests_per_minute: int = 30
+    rate_limit_enabled: bool = True
+
+    # --- OpenTelemetry ---
+    otel_enabled: bool = False
+    otel_exporter_endpoint: str = "http://localhost:4317"
+    otel_service_name: str = "rag-platform"
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False)
 
     @property

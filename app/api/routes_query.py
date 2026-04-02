@@ -56,5 +56,10 @@ def chat(
         if payload.use_rerank:
             hits = rerank_service.rerank(payload.query, hits)
     SEARCH_REQUESTS.inc()
-    answer = llm_service.answer(payload.query, hits)
-    return ChatResponse(query=payload.query, answer=answer, citations=[SearchHit(**hit) for hit in hits[: payload.top_k]])
+    result = llm_service.answer_with_metadata(payload.query, hits)
+    return ChatResponse(
+        query=payload.query,
+        answer=result["answer"],
+        citations=[SearchHit(**hit) for hit in hits[: payload.top_k]],
+        model_version=result["model_version"],
+    )

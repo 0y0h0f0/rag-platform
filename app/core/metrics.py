@@ -1,4 +1,4 @@
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
 from starlette.responses import Response
 
 
@@ -36,6 +36,40 @@ CACHE_HITS = Counter(
 CACHE_MISSES = Counter(
     "rag_platform_search_cache_miss_total",
     "Total search cache misses",
+)
+
+# --- Model inference metrics ---
+
+MODEL_INFERENCE_LATENCY = Histogram(
+    "rag_model_inference_seconds",
+    "Model inference latency",
+    labelnames=("provider", "model", "operation"),
+)
+
+MODEL_INFERENCE_TOKENS = Counter(
+    "rag_model_tokens_total",
+    "Total tokens processed",
+    labelnames=("model", "direction"),
+)
+
+MODEL_HEALTH_STATUS = Gauge(
+    "rag_model_health_status",
+    "Model service health (1=healthy, 0=unhealthy)",
+    labelnames=("provider", "model"),
+)
+
+# --- Rate limiting metrics ---
+
+RATE_LIMIT_REJECTED = Counter(
+    "rag_rate_limit_rejected_total",
+    "Requests rejected by rate limiter",
+)
+
+# --- Embedding batch metrics ---
+
+EMBEDDING_BATCH_SIZE = Histogram(
+    "rag_embedding_batch_size",
+    "Embedding batch sizes",
 )
 
 

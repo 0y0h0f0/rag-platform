@@ -37,3 +37,4 @@ class ChatResponse(BaseModel):
     query: str
     answer: str
     citations: list[SearchHit]
+    model_version: str | None = None

@@ -1,3 +1,4 @@
+from app.infra.provider_registry import ProviderRegistry
 from app.services.chunk_service import ChunkService
 from app.services.bm25_service import BM25Service
 from app.services.document_service import DocumentService, TaskService
@@ -37,3 +38,7 @@ def get_rerank_service() -> RerankService:
 
 def get_llm_service() -> LLMService:
     return LLMService()
+
+
+def get_provider_registry() -> ProviderRegistry:
+    return ProviderRegistry.get_instance()

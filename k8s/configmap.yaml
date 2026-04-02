@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rag-platform-config
+  namespace: rag-platform
+  labels:
+    app: rag-platform
+data:
+  APP_NAME: "rag-platform"
+  API_PREFIX: "/api/v1"
+  DATA_DIR: "/data"
+  UPLOAD_DIR: "/data/uploads"
+  LANCEDB_URI: "/data/lancedb"
+  LANCEDB_TABLE: "embeddings"
+  DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/rag_platform"
+  REDIS_URL: "redis://redis:6379/0"
+  CELERY_BROKER_URL: "redis://redis:6379/1"
+  CELERY_RESULT_BACKEND: "redis://redis:6379/2"
+  CELERY_TASK_ALWAYS_EAGER: "false"
+  CHUNK_SIZE: "600"
+  CHUNK_OVERLAP: "100"
+  EMBEDDING_DIM: "64"
+  EMBEDDING_BACKEND: "local"
+  EMBEDDING_PROVIDER: "ollama"
+  LLM_PROVIDER: "ollama"
+  OLLAMA_BASE_URL: "http://ollama:11434"
+  OLLAMA_LLM_MODEL: "qwen2.5:7b-instruct-q4_K_M"
+  OLLAMA_EMBED_MODEL: "nomic-embed-text"
+  OTEL_ENABLED: "true"
+  OTEL_EXPORTER_ENDPOINT: "http://jaeger:4317"
+  OTEL_SERVICE_NAME: "rag-platform"
+  RATE_LIMIT_ENABLED: "true"
+  RATE_LIMIT_REQUESTS_PER_MINUTE: "30"
+  TOP_K_DEFAULT: "5"
+  SEARCH_MODE_DEFAULT: "vector"

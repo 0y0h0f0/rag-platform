@@ -51,11 +51,19 @@ class EmbeddingService:
         return [float(value / norm) for value in vector]
 
     def embed_text(self, text: str) -> list[float]:
+        if settings.embedding_provider == "ollama":
+            from app.infra.provider_registry import ProviderRegistry
+            provider = ProviderRegistry.get_instance().get_embedding()
+            return provider.embed([text])[0]
         if settings.embedding_backend == "sentence_transformers":
             return self._embed_with_model(text)
         return self._embed_with_local_hash(text)
 
     def embed_many(self, texts: list[str]) -> list[list[float]]:
+        if settings.embedding_provider == "ollama":
+            from app.infra.provider_registry import ProviderRegistry
+            provider = ProviderRegistry.get_instance().get_embedding()
+            return provider.embed(texts)
         if settings.embedding_backend == "sentence_transformers":
             model = self._load_model()
             vectors = model.encode(texts, normalize_embeddings=True)

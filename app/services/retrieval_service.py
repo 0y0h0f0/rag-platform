@@ -9,6 +9,7 @@ from app.services.cache_service import CacheService
 from app.services.chunk_service import ChunkService
 from app.services.embedding_service import EmbeddingService
 from app.services.hybrid_service import HybridSearchService
+from app.infra.tracing import trace_span
 
 
 class RetrievalService:
@@ -51,41 +52,42 @@ class RetrievalService:
         search_mode: str = "vector",
         knowledge_base: str | None = None,
     ) -> list[dict]:
-        cache_payload = {
-            "query": query,
-            "top_k": top_k,
-            "document_id": document_id,
-            "search_mode": search_mode,
-            "knowledge_base": knowledge_base,
-        }
-        cached = self.cache_service.get_json("search", cache_payload)
-        if cached is not None:
-            return cached
+        with trace_span("retrieval.search", {"search_mode": search_mode, "top_k": top_k}):
+            cache_payload = {
+                "query": query,
+                "top_k": top_k,
+                "document_id": document_id,
+                "search_mode": search_mode,
+                "knowledge_base": knowledge_base,
+            }
+            cached = self.cache_service.get_json("search", cache_payload)
+            if cached is not None:
+                return cached
 
-        if search_mode == "lexical":
-            chunks = self.chunk_service.get_searchable_chunks(
-                db,
-                knowledge_base=knowledge_base,
-                document_id=document_id,
-            )
-            hits = self.bm25_service.score(query, chunks, top_k)
-            self.cache_service.set_json("search", cache_payload, hits)
-            return hits
+            if search_mode == "lexical":
+                chunks = self.chunk_service.get_searchable_chunks(
+                    db,
+                    knowledge_base=knowledge_base,
+                    document_id=document_id,
+                )
+                hits = self.bm25_service.score(query, chunks, top_k)
+                self.cache_service.set_json("search", cache_payload, hits)
+                return hits
 
-        vector_hits = self._vector_search(query, top_k, document_id, knowledge_base)
-        if search_mode == "hybrid":
-            chunks = self.chunk_service.get_searchable_chunks(
-                db,
-                knowledge_base=knowledge_base,
-                document_id=document_id,
-            )
-            lexical_hits = self.bm25_service.score(query, chunks, top_k)
-            hits = self.hybrid_service.fuse(vector_hits, lexical_hits, top_k)
-            self.cache_service.set_json("search", cache_payload, hits)
-            return hits
+            vector_hits = self._vector_search(query, top_k, document_id, knowledge_base)
+            if search_mode == "hybrid":
+                chunks = self.chunk_service.get_searchable_chunks(
+                    db,
+                    knowledge_base=knowledge_base,
+                    document_id=document_id,
+                )
+                lexical_hits = self.bm25_service.score(query, chunks, top_k)
+                hits = self.hybrid_service.fuse(vector_hits, lexical_hits, top_k)
+                self.cache_service.set_json("search", cache_payload, hits)
+                return hits
 
-        self.cache_service.set_json("search", cache_payload, vector_hits)
-        return vector_hits
+            self.cache_service.set_json("search", cache_payload, vector_hits)
+            return vector_hits
 
     def _vector_search(
         self,
