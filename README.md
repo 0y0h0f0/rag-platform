@@ -450,9 +450,9 @@ curl http://127.0.0.1:8000/api/v1/infra/models/health
 
 | 变量 | 默认值 | 说明 |
 |------|--------|------|
-| `LLM_PROVIDER` | `deepseek` | 模型后端：`ollama` / `api` / `deepseek` / `ab_test` |
-| `LLM_API_KEY` | - | API Key (api/deepseek 模式) |
-| `LLM_BASE_URL` | `https://api.deepseek.com` | API 地址 |
+| `LLM_PROVIDER` | `api` | 模型后端：`ollama` / `api` / `deepseek` / `ab_test` |
+| `LLM_API_KEY` | `dummy` | API Key (api/deepseek 模式) |
+| `LLM_BASE_URL` | `http://localhost:8001/v1` | API 地址 (vLLM / DeepSeek 等) |
 | `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama 地址 |
 | `OLLAMA_LLM_MODEL` | `qwen2.5:7b-instruct-q4_K_M` | Ollama LLM 模型 |
 | `OLLAMA_EMBED_MODEL` | `nomic-embed-text` | Ollama Embedding 模型 |
@@ -680,6 +680,12 @@ mode=hybrid  requests=20 avg=0.0013s p95=0.0014s
 ## 17. 详细文档
 
 - [架构设计文档](docs/architecture.md) — 系统架构、组件交互、数据流详解
+- [服务层技术文档](docs/services.md) — 检索、分块、BM25、RRF 融合等核心算法详解
+- [数据层技术文档](docs/data-layer.md) — PostgreSQL、LanceDB、Redis 存储设计
+- [异步任务技术文档](docs/workers.md) — Celery 任务流水线、入库与向量化流程
 - [部署指南](docs/deployment.md) — 本地开发、Docker Compose、K8s 部署完整指南
 - [API 参考手册](docs/api-reference.md) — 所有接口的请求/响应格式与示例
 - [AI Infra 设计文档](docs/infra-design.md) — Provider 架构、追踪、指标、限流、熔断设计决策
+- [测试指南](docs/testing.md) — 测试策略、运行方式、编写规范
+- [快速上手指南](docs/getting-started.md) — 新人从零搭建开发环境
+- [项目简介](docs/README-intro.md) — 一页纸了解项目全貌
