@@ -667,17 +667,7 @@ mode=hybrid  requests=20 avg=0.0013s p95=0.0014s
 - Docker Compose + Kubernetes 部署
 - 可演示的前端页面
 
-## 16. 面试重点
-
-1. **Model Provider 抽象**：解释为什么需要 Provider 层，如何做到热切换和向后兼容
-2. **A/B 测试设计**：如何实现流量分配、指标收集、动态调整
-3. **分布式追踪**：OpenTelemetry 在 API + Celery Worker 中的 Span 传播
-4. **限流与熔断**：Token Bucket 算法、Circuit Breaker 三状态转换
-5. **双数据库分层**：PostgreSQL vs LanceDB 的职责划分
-6. **检索策略**：vector / lexical / hybrid 的适用场景，RRF 为什么优于加权平均
-7. **K8s 部署**：GPU 调度、HPA 配置、健康探针设计
-
-## 17. 详细文档
+## 16. 详细文档
 
 - [架构设计文档](docs/architecture.md) — 系统架构、组件交互、数据流详解
 - [服务层技术文档](docs/services.md) — 检索、分块、BM25、RRF 融合等核心算法详解
