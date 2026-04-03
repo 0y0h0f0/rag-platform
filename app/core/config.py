@@ -28,13 +28,13 @@ class Settings(BaseSettings):
     search_cache_ttl_seconds: int = 300
 
     # --- LLM (OpenAI-compatible API) ---
-    llm_provider: str = "deepseek"  # ollama | api | deepseek | ab_test
-    llm_api_key: str = ""
-    llm_base_url: str = "https://api.deepseek.com"
-    llm_model: str = "deepseek-chat"
+    llm_provider: str = "api"  # ollama | api | deepseek | ab_test
+    llm_api_key: str = "dummy"
+    llm_base_url: str = "http://localhost:8001/v1"
+    llm_model: str = "Qwen/Qwen2.5-7B-Instruct-AWQ"
     llm_temperature: float = 0.2
     llm_max_tokens: int = 512
-    llm_timeout_seconds: float = 30.0
+    llm_timeout_seconds: float = 120.0
 
     # --- Ollama ---
     ollama_base_url: str = "http://localhost:11434"

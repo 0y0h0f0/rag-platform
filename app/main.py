@@ -53,9 +53,10 @@ def create_app() -> FastAPI:
 
         # Database check
         try:
+            from sqlalchemy import text
             from app.db.postgres import SessionLocal
             db = SessionLocal()
-            db.execute(db.bind.dialect.do_ping if hasattr(db.bind.dialect, "do_ping") else __import__("sqlalchemy").text("SELECT 1"))
+            db.execute(text("SELECT 1"))
             db.close()
             checks["database"] = True
         except Exception:

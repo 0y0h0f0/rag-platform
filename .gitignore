@@ -35,9 +35,11 @@ tmp/
 .idea/
 .vscode/
 
-# Local startup scripts (contain credentials)
+# Local startup scripts (contain credentials / local paths)
 start
 start.sh
+startapp
+startvllm
 
 # Personal notes
 study.md

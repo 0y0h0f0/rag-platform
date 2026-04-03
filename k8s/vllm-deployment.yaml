@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vllm
+  namespace: rag-platform
+  labels:
+    app: vllm
+spec:
+  serviceName: vllm
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm
+  template:
+    metadata:
+      labels:
+        app: vllm
+    spec:
+      nodeSelector:
+        gpu: "true"
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:latest
+          args:
+            - "--model"
+            - "Qwen/Qwen2.5-7B-Instruct-AWQ"
+            - "--quantization"
+            - "awq"
+            - "--dtype"
+            - "half"
+            - "--max-model-len"
+            - "2048"
+            - "--gpu-memory-utilization"
+            - "0.90"
+            - "--enforce-eager"
+          ports:
+            - containerPort: 8000
+          env:
+            - name: HUGGING_FACE_HUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: rag-platform-secret
+                  key: HF_TOKEN
+                  optional: true
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+            requests:
+              cpu: "1"
+              memory: 4Gi
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: vllm-models
+              mountPath: /root/.cache/huggingface
+  volumeClaimTemplates:
+    - metadata:
+        name: vllm-models
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 30Gi

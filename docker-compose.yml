@@ -11,23 +11,28 @@ services:
       LANCEDB_URI: /app/data/lancedb
       DATA_DIR: /app/data
       UPLOAD_DIR: /app/data/uploads
-      LLM_PROVIDER: ollama
-      EMBEDDING_PROVIDER: ollama
-      OLLAMA_BASE_URL: http://ollama:11434
-      OLLAMA_LLM_MODEL: qwen2.5:7b-instruct-q4_K_M
-      OLLAMA_EMBED_MODEL: nomic-embed-text
+      LLM_PROVIDER: api
+      LLM_BASE_URL: http://host.docker.internal:8001/v1
+      LLM_MODEL: Qwen/Qwen2.5-7B-Instruct-AWQ
+      LLM_API_KEY: dummy
+      LLM_TIMEOUT_SECONDS: "120"
+      EMBEDDING_PROVIDER: legacy
+      EMBEDDING_BACKEND: sentence_transformers
+      EMBEDDING_MODEL_NAME: BAAI/bge-small-zh-v1.5
+      EMBEDDING_DIM: "512"
       OTEL_ENABLED: "true"
       OTEL_EXPORTER_ENDPOINT: http://jaeger:4317
       OTEL_SERVICE_NAME: rag-platform
       RATE_LIMIT_ENABLED: "true"
     ports:
       - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./data:/app/data
     depends_on:
       - postgres
       - redis
-      - ollama
 
   worker:
     build: .
@@ -42,35 +47,25 @@ services:
       LANCEDB_URI: /app/data/lancedb
       DATA_DIR: /app/data
       UPLOAD_DIR: /app/data/uploads
-      LLM_PROVIDER: ollama
-      EMBEDDING_PROVIDER: ollama
-      OLLAMA_BASE_URL: http://ollama:11434
-      OLLAMA_LLM_MODEL: qwen2.5:7b-instruct-q4_K_M
-      OLLAMA_EMBED_MODEL: nomic-embed-text
+      LLM_PROVIDER: api
+      LLM_BASE_URL: http://host.docker.internal:8001/v1
+      LLM_MODEL: Qwen/Qwen2.5-7B-Instruct-AWQ
+      LLM_API_KEY: dummy
+      LLM_TIMEOUT_SECONDS: "120"
+      EMBEDDING_PROVIDER: legacy
+      EMBEDDING_BACKEND: sentence_transformers
+      EMBEDDING_MODEL_NAME: BAAI/bge-small-zh-v1.5
+      EMBEDDING_DIM: "512"
       OTEL_ENABLED: "true"
       OTEL_EXPORTER_ENDPOINT: http://jaeger:4317
       OTEL_SERVICE_NAME: rag-platform-worker
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./data:/app/data
     depends_on:
       - postgres
       - redis
-      - ollama
-
-  ollama:
-    image: ollama/ollama:latest
-    container_name: rag-platform-ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
 
   postgres:
     image: postgres:16
@@ -101,4 +96,3 @@ services:
 
 volumes:
   postgres_data:
-  ollama_data:

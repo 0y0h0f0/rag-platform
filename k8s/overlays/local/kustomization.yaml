@@ -1,0 +1,93 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+patches:
+  # API: 使用本地镜像，降低副本数
+  - target:
+      kind: Deployment
+      name: api
+    patch: |
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  # Worker: 使用本地镜像，降低副本数
+  - target:
+      kind: Deployment
+      name: worker
+    patch: |
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  # Ollama: 去掉 GPU 节点选择器和 GPU 资源限制，使用本地镜像
+  - target:
+      kind: StatefulSet
+      name: ollama
+    patch: |
+      - op: remove
+        path: /spec/template/spec/nodeSelector
+      - op: remove
+        path: /spec/template/spec/containers/0/resources
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+
+  # PostgreSQL: 使用本地镜像
+  - target:
+      kind: Deployment
+      name: postgres
+    patch: |
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+
+  # Redis: 使用本地镜像
+  - target:
+      kind: Deployment
+      name: redis
+    patch: |
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+
+  # Jaeger: 使用本地镜像
+  - target:
+      kind: Deployment
+      name: jaeger
+    patch: |
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+
+  # HPA: 本地测试降低最小/最大副本数
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: api-hpa
+    patch: |
+      - op: replace
+        path: /spec/minReplicas
+        value: 1
+      - op: replace
+        path: /spec/maxReplicas
+        value: 2
+
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: worker-hpa
+    patch: |
+      - op: replace
+        path: /spec/minReplicas
+        value: 1
+      - op: replace
+        path: /spec/maxReplicas
+        value: 2

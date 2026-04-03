@@ -13,7 +13,7 @@ RAG (Retrieval-Augmented Generation) platform built with FastAPI. Supports docum
 - **Vector DB:** LanceDB with PyArrow schemas
 - **Task Queue:** Celery with Redis broker
 - **Cache:** Redis (JSON serialization, SHA256 keys, namespace invalidation)
-- **Model Serving:** Ollama (local GPU) or any OpenAI-compatible API (DeepSeek, vLLM, etc.)
+- **Model Serving:** vLLM (GPU, default) or Ollama (local GPU) or any OpenAI-compatible API (DeepSeek, etc.)
 - **Embeddings:** Ollama (`nomic-embed-text`), sentence-transformers, or deterministic local hash
 - **LLM:** Pluggable via `LLM_PROVIDER` — supports `ollama`, `api` (OpenAI-compatible), `ab_test`
 - **Observability:** OpenTelemetry (Jaeger), Prometheus metrics
@@ -26,7 +26,7 @@ RAG (Retrieval-Augmented Generation) platform built with FastAPI. Supports docum
 # Run API server locally (SQLite mode)
 uvicorn app.main:app --host 127.0.0.1 --port 8000
 
-# Run with Docker Compose (PostgreSQL + Redis + Ollama + Jaeger)
+# Run with Docker Compose (PostgreSQL + Redis + vLLM + Jaeger)
 docker-compose up
 
 # Database migrations
