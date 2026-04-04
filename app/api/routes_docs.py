@@ -27,7 +27,7 @@ async def upload_document(
     task_service: TaskService = Depends(get_task_service),
 ) -> UploadResponse:
     suffix = Path(file.filename or "upload.txt").suffix
-    if suffix.lower() not in {".txt", ".md", ".pdf", ".rs", ".py"}:
+    if suffix.lower() not in {".txt", ".md", ".pdf", ".rs", ".py", ".json",".cpp",".h",".c"}:
         raise HTTPException(status_code=400, detail="unsupported file type")
 
     storage_name = f"{uuid.uuid4().hex}{suffix}"

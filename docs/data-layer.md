@@ -120,7 +120,7 @@ def init_db() -> None:
 
 | 环境 | DATABASE_URL | 特点 |
 |------|-------------|------|
-| 开发 | `sqlite:///./data/app.db` | 零依赖，单文件数据库 |
+| 开发 | `postgresql+psycopg://postgres:postgres@localhost:5432/rag_platform` | 与本地容器环境一致，便于迁移验证 |
 | 生产 | `postgresql+psycopg://user:pass@host:5432/db` | ACID 事务，高并发 |
 
 切换只需修改 `.env` 中的 `DATABASE_URL`，代码零改动。
@@ -418,7 +418,7 @@ class TaskRecord(Base):
 # alembic.ini
 [alembic]
 script_location = alembic
-sqlalchemy.url = sqlite:///./data/app.db  # 被 env.py 中的 settings 覆盖
+sqlalchemy.url = postgresql+psycopg://postgres:postgres@localhost:5432/rag_platform  # 被 env.py 中的 settings 覆盖
 ```
 
 ### 6.2 迁移历史

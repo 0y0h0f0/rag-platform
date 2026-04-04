@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     lancedb_uri: str = "./data/lancedb"
     lancedb_table: str = "chunks"
 
-    database_url: str = "sqlite:///./data/app.db"
+    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/rag_platform"
     redis_url: str = "redis://localhost:6379/0"
     celery_broker_url: str = "redis://localhost:6379/0"
     celery_result_backend: str = "redis://localhost:6379/1"

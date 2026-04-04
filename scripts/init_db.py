@@ -5,5 +5,5 @@ from app.db.postgres import init_db
 if __name__ == "__main__":
     init_db()
     LanceDBClient().ensure_table()
-    print("initialized postgres/sqlite schema and lancedb table")
+    print("initialized PostgreSQL schema and LanceDB table")
 

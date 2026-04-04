@@ -99,7 +99,7 @@ cp .env.example .env
 
 ```ini
 # === 数据库 ===
-DATABASE_URL=sqlite:///./data/app.db    # 本地开发使用 SQLite，无需安装数据库
+DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/rag_platform
 
 # === LLM 模型 ===
 LLM_PROVIDER=deepseek                   # 使用 DeepSeek API（最简单的入门方式）
@@ -362,7 +362,7 @@ INFO: Application startup complete.
 
 上传文档后跟踪数据流的最佳方式：
 
-1. 查看 `data/app.db`（SQLite）中的 documents、chunks、tasks 表
+1. 连接本地 PostgreSQL，检查 `documents`、`chunks`、`tasks` 表
 2. 查看 `data/lancedb/` 目录下的向量数据
 3. 使用 `/api/v1/tasks/{task_id}` 查看任务状态
 

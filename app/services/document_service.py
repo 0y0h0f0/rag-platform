@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.db.lancedb_client import LanceDBClient
@@ -60,10 +60,19 @@ class DocumentService:
         document = db.get(Document, document_id)
         if not document:
             return False
+
         storage_path = Path(document.storage_path)
-        self.lancedb.delete_document(document_id)
-        db.delete(document)
-        db.commit()
+
+        try:
+            self.lancedb.delete_document(document_id)
+            db.execute(delete(Chunk).where(Chunk.document_id == document_id))
+            db.execute(delete(TaskRecord).where(TaskRecord.document_id == document_id))
+            db.delete(document)
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+
         self.cache_service.clear_namespace("search")
         if storage_path.exists():
             storage_path.unlink()

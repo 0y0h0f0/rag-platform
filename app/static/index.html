@@ -209,6 +209,48 @@
         border: 1px solid rgba(26, 27, 31, 0.08);
       }
 
+      .doc-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .doc-title {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.4;
+      }
+
+      .doc-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .doc-delete {
+        width: auto;
+        min-width: 84px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(185, 28, 28, 0.18);
+        background: rgba(254, 226, 226, 0.95);
+        color: #991b1b;
+      }
+
+      .doc-delete:disabled {
+        cursor: wait;
+        opacity: 0.7;
+      }
+
+      .doc-empty {
+        padding: 18px;
+        border-radius: 16px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.56);
+        border: 1px dashed rgba(26, 27, 31, 0.12);
+      }
+
       .doc-meta {
         color: var(--muted);
         font-size: 13px;
@@ -302,10 +344,27 @@
       const queryResult = document.getElementById("queryResult");
       const documentList = document.getElementById("documentList");
       const summaryGrid = document.getElementById("summaryGrid");
+      const deletingDocuments = new Set();
+
+      function formatError(error) {
+        if (error instanceof Error) {
+          return error.message;
+        }
+        return String(error);
+      }
+
+      async function readJsonOrThrow(response) {
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) {
+          const detail = payload && typeof payload.detail === "string" ? payload.detail : response.statusText;
+          throw new Error(detail || "Request failed.");
+        }
+        return payload;
+      }
 
       async function refreshSummary() {
         const response = await fetch("/api/v1/documents/dashboard/summary");
-        const summary = await response.json();
+        const summary = await readJsonOrThrow(response);
         summaryGrid.innerHTML = "";
         Object.entries(summary).forEach(([key, value]) => {
           const item = document.createElement("div");
@@ -317,17 +376,78 @@
 
       async function refreshDocuments() {
         const response = await fetch("/api/v1/documents");
-        const docs = await response.json();
+        const docs = await readJsonOrThrow(response);
         documentList.innerHTML = "";
+
+        if (!docs.length) {
+          const empty = document.createElement("div");
+          empty.className = "doc-empty";
+          empty.textContent = "No documents indexed yet.";
+          documentList.appendChild(empty);
+          return;
+        }
+
         docs.forEach((doc) => {
           const item = document.createElement("div");
           item.className = "doc-item";
-          item.innerHTML = `
-            <strong>${doc.filename}</strong>
-            <div class="doc-meta">knowledge_base=${doc.knowledge_base} | status=${doc.status} | size=${doc.file_size} bytes</div>
-          `;
+
+          const row = document.createElement("div");
+          row.className = "doc-row";
+
+          const info = document.createElement("div");
+          const title = document.createElement("p");
+          title.className = "doc-title";
+          title.textContent = doc.filename;
+
+          const meta = document.createElement("div");
+          meta.className = "doc-meta";
+          meta.textContent = `knowledge_base=${doc.knowledge_base} | status=${doc.status} | size=${doc.file_size} bytes`;
+
+          info.appendChild(title);
+          info.appendChild(meta);
+
+          const actions = document.createElement("div");
+          actions.className = "doc-actions";
+
+          const deleteButton = document.createElement("button");
+          deleteButton.type = "button";
+          deleteButton.className = "doc-delete";
+          deleteButton.textContent = deletingDocuments.has(doc.id) ? "Deleting..." : "Delete";
+          deleteButton.disabled = deletingDocuments.has(doc.id);
+          deleteButton.addEventListener("click", () => deleteDocument(doc));
+
+          actions.appendChild(deleteButton);
+          row.appendChild(info);
+          row.appendChild(actions);
+          item.appendChild(row);
           documentList.appendChild(item);
         });
+      }
+
+      async function deleteDocument(doc) {
+        const confirmed = window.confirm(`Delete document \"${doc.filename}\" from knowledge base \"${doc.knowledge_base}\"? This also removes indexed chunks from the database.`);
+        if (!confirmed) {
+          return;
+        }
+
+        deletingDocuments.add(doc.id);
+        uploadResult.textContent = `Deleting ${doc.filename}...`;
+        await refreshDocuments();
+
+        try {
+          const response = await fetch(`/api/v1/documents/${doc.id}`, { method: "DELETE" });
+          if (!response.ok) {
+            const payload = await response.json().catch(() => null);
+            const detail = payload && typeof payload.detail === "string" ? payload.detail : response.statusText;
+            throw new Error(detail || "Delete failed.");
+          }
+          uploadResult.textContent = `${doc.filename} deleted. PostgreSQL metadata and LanceDB index entries were removed.`;
+        } catch (error) {
+          uploadResult.textContent = `Delete failed: ${formatError(error)}`;
+        } finally {
+          deletingDocuments.delete(doc.id);
+          await Promise.all([refreshDocuments(), refreshSummary()]);
+        }
       }
 
       async function uploadDocument() {
@@ -342,11 +462,14 @@
         formData.append("knowledge_base", kb);
 
         uploadResult.textContent = "Uploading and scheduling indexing...";
-        const response = await fetch("/api/v1/documents/upload", { method: "POST", body: formData });
-        const data = await response.json();
-        uploadResult.textContent = JSON.stringify(data, null, 2);
-        refreshDocuments();
-        refreshSummary();
+        try {
+          const response = await fetch("/api/v1/documents/upload", { method: "POST", body: formData });
+          const data = await readJsonOrThrow(response);
+          uploadResult.textContent = JSON.stringify(data, null, 2);
+          await Promise.all([refreshDocuments(), refreshSummary()]);
+        } catch (error) {
+          uploadResult.textContent = `Upload failed: ${formatError(error)}`;
+        }
       }
 
       async function runQuery(kind) {
@@ -363,8 +486,12 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const data = await response.json();
-        queryResult.textContent = JSON.stringify(data, null, 2);
+        try {
+          const data = await readJsonOrThrow(response);
+          queryResult.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+          queryResult.textContent = `Query failed: ${formatError(error)}`;
+        }
       }
 
       document.getElementById("uploadButton").addEventListener("click", uploadDocument);

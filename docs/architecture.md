@@ -1132,7 +1132,7 @@ score = α * vector_score + (1-α) * lexical_score
 
 | 环境变量 | 默认值 | 说明 |
 |---------|-------|------|
-| `DATABASE_URL` | `sqlite:///./data/app.db` | 数据库连接串 |
+| `DATABASE_URL` | `postgresql+psycopg://postgres:postgres@localhost:5432/rag_platform` | 数据库连接串 |
 | `REDIS_URL` | `redis://localhost:6379/0` | Redis 连接串 |
 | `LLM_PROVIDER` | `deepseek` | LLM 后端: ollama / api / deepseek / ab_test |
 | `EMBEDDING_PROVIDER` | `legacy` | Embedding 后端: ollama / legacy |

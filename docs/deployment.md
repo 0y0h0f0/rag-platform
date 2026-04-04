@@ -7,7 +7,7 @@
 ## 目录
 
 1. [环境要求](#1-环境要求)
-2. [本地开发模式 (SQLite)](#2-本地开发模式-sqlite)
+2. [本地开发模式 (PostgreSQL)](#2-本地开发模式-postgresql)
 3. [Ollama 本地 GPU 模式](#3-ollama-本地-gpu-模式)
 4. [PostgreSQL 工程验证模式](#4-postgresql-工程验证模式)
 5. [Docker Compose 完整部署](#5-docker-compose-完整部署)
@@ -55,9 +55,9 @@
 
 ---
 
-## 2. 本地开发模式 (SQLite)
+## 2. 本地开发模式 (PostgreSQL)
 
-最简单的启动方式，使用 SQLite 作为数据库，本地哈希作为嵌入后端，适合快速开发调试。
+本地开发默认使用 PostgreSQL 作为业务数据库，本地哈希作为嵌入后端，和容器部署保持一致。
 
 ### 2.1 克隆项目
 
@@ -93,7 +93,7 @@ cp .env.example .env
 默认 `.env` 配置即可用于本地开发，核心默认值：
 
 ```ini
-DATABASE_URL=sqlite:///./data/app.db
+DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/rag_platform
 REDIS_URL=redis://localhost:6379/0
 CELERY_TASK_ALWAYS_EAGER=true
 EMBEDDING_BACKEND=local
@@ -102,11 +102,21 @@ LLM_PROVIDER=deepseek
 LLM_API_KEY=your-api-key-here   # 替换为你的 DeepSeek API Key
 ```
 
-> **说明**：`CELERY_TASK_ALWAYS_EAGER=true` 表示 Celery 任务同步执行，无需启动 Redis 和 Worker 进程。
+> **说明**：`CELERY_TASK_ALWAYS_EAGER=true` 表示 Celery 任务同步执行，无需启动 Redis 和 Worker 进程，但本地仍需先启动 PostgreSQL。
 
 ### 2.4 初始化数据库
 
 ```bash
+# 启动 PostgreSQL
+docker run -d \
+  --name rag-postgres \
+  -e POSTGRES_DB=rag_platform \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -p 5432:5432 \
+  -v postgres_data:/var/lib/postgresql/data \
+  postgres:16
+
 # 创建数据目录
 mkdir -p data/uploads
 
@@ -226,7 +236,7 @@ uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 
 ## 4. PostgreSQL 工程验证模式
 
-将数据库从 SQLite 切换到 PostgreSQL，适合工程验证和性能测试。
+如果你想把本地 PostgreSQL 切换成独立的验证实例或压测环境，可以按下面的方式单独启动。
 
 ### 4.1 启动 PostgreSQL
 
@@ -775,7 +785,7 @@ metadata:
 
 | 变量名 | 默认值 | 说明 |
 |--------|--------|------|
-| `DATABASE_URL` | `sqlite:///./data/app.db` | 数据库连接串，支持 SQLite 和 PostgreSQL |
+| `DATABASE_URL` | `postgresql+psycopg://postgres:postgres@localhost:5432/rag_platform` | 数据库连接串，默认使用本地 PostgreSQL |
 | `REDIS_URL` | `redis://localhost:6379/0` | Redis 连接地址 |
 | `CELERY_BROKER_URL` | `redis://localhost:6379/0` | Celery 消息队列 Broker |
 | `CELERY_RESULT_BACKEND` | `redis://localhost:6379/1` | Celery 结果存储后端 |

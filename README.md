@@ -34,7 +34,7 @@
 | 类别 | 技术 |
 |------|------|
 | Web 框架 | FastAPI + Uvicorn + Pydantic |
-| 业务数据库 | PostgreSQL (prod) / SQLite (dev)，SQLAlchemy + Alembic |
+| 业务数据库 | PostgreSQL，SQLAlchemy + Alembic |
 | 向量数据库 | LanceDB + PyArrow |
 | 任务队列 | Celery + Redis |
 | 缓存 | Redis（JSON 序列化，SHA256 缓存 key，命名空间失效） |
@@ -439,7 +439,7 @@ curl http://127.0.0.1:8000/api/v1/infra/models/health
 
 | 变量 | 默认值 | 说明 |
 |------|--------|------|
-| `DATABASE_URL` | `sqlite:///./data/app.db` | 数据库连接串 |
+| `DATABASE_URL` | `postgresql+psycopg://postgres:postgres@localhost:5432/rag_platform` | 数据库连接串 |
 | `REDIS_URL` | `redis://localhost:6379/0` | Redis 地址 |
 | `CELERY_TASK_ALWAYS_EAGER` | `true` | true=同步模式，false=需 Redis |
 | `CHUNK_SIZE` | `600` | 切块大小 |
@@ -477,7 +477,7 @@ curl http://127.0.0.1:8000/api/v1/infra/models/health
 
 ## 12. 快速开始
 
-### 12.1 本地开发模式 (SQLite)
+### 12.1 本地开发模式 (PostgreSQL)
 
 ```bash
 # 克隆项目
@@ -489,6 +489,9 @@ pip install -r requirements.txt
 
 # 配置环境
 cp .env.example .env
+# 启动本地 PostgreSQL
+docker run -d --name rag-postgres -e POSTGRES_DB=rag_platform -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:16
+
 # 编辑 .env 设置 LLM_API_KEY
 
 # 初始化数据库
